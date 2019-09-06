@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "817620761599",
+    "firebase_url": "https://lufthansa-app.firebaseio.com",
+    "project_id": "lufthansa-app",
+    "storage_bucket": "lufthansa-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:817620761599:android:db1513589d523cfb",
+        "android_client_info": {
+          "package_name": "com.erayonur.lufthansa_example_project"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "817620761599-k48g7fpvgrvasisvfgnepiq5ckk2lm8g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA3JBOKDNgkzrdA3clBbbLHl2A9JMQ0vqE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "817620761599-k48g7fpvgrvasisvfgnepiq5ckk2lm8g.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
