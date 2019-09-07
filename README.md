@@ -1,6 +1,7 @@
 # lufthansa_example_project
 
 A new Flutter application that alerts the user to their preferred flight status.
+To simulate a background process without the need of waiting, type "adb shell cmd jobscheduler run -f com.erayonur.lufthansa-example-project 999" in the command line (cmd.exe).
 
 ## Getting Started
 
