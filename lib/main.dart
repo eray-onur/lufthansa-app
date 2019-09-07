@@ -6,7 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:background_fetch/background_fetch.dart';
 import 'package:http/http.dart' as http;
-
 // Background process after app termination is still WIP(Work in Progress).
 // NOT: 401 Status Code aliniyor, access token degismeli.
 String apiKey = "c2zqxfpz7y8uc6bhx7d2vcrd";
@@ -32,9 +31,28 @@ void backgroundFetchHeadlessTask() async {
   }
   // Add new event.
   events.insert(0, new DateTime.now().toString() + ' [Headless]');
+  displayNotification();
   // Persist fetch events in SharedPreferences
   prefs.setString(EVENTS_KEY, jsonEncode(events));
   BackgroundFetch.finish();
+}
+
+FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+
+final List<Notification> notifications = [];
+
+void displayNotification() async {
+  print("On to display a notification..");
+  var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'first_channel', 'Flight App', 'your channel description',
+      importance: Importance.Max, priority: Priority.High, ticker: 'ticker');
+  var iOSPlatformChannelSpecifics = IOSNotificationDetails();
+  var platformChannelSpecifics = NotificationDetails(
+      androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+  await flutterLocalNotificationsPlugin.show(
+      0, 'Flight Carrier', "Carrier you're looking for is about to depart!",
+      platformChannelSpecifics,
+      payload: 'FlightCarrier');
 }
 
 void main(){
@@ -81,12 +99,9 @@ class _MyHomePageState extends State<MyHomePage> {
   //
   bool _enabled = true;
   int _status = 0;
-  List<DateTime> _events = [];
+  List<String> _events = [];
 
   //
-  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
-
-  final List<Notification> notifications = [];
 
   final _formKey = GlobalKey<FormState>();
 
@@ -111,19 +126,6 @@ class _MyHomePageState extends State<MyHomePage> {
         initializationSettingsAndroid, initializationSettingsIOS);
     flutterLocalNotificationsPlugin.initialize(initializationSettings,
         onSelectNotification: onSelectNotification);
-  }
-
-  void displayNotification() async {
-    var androidPlatformChannelSpecifics = AndroidNotificationDetails(
-        'first_channel', 'Flight App', 'your channel description',
-        importance: Importance.Max, priority: Priority.High, ticker: 'ticker');
-    var iOSPlatformChannelSpecifics = IOSNotificationDetails();
-    var platformChannelSpecifics = NotificationDetails(
-        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
-    await flutterLocalNotificationsPlugin.show(
-        0, 'Flight Carrier', "Carrier you're looking for is about to depart!",
-        platformChannelSpecifics,
-        payload: 'FlightCarrier');
   }
 
   Future onDidReceiveLocalNotification(int id, String title, String body,
@@ -202,11 +204,11 @@ class _MyHomePageState extends State<MyHomePage> {
     // This is the fetch-event callback.
     print('[BackgroundFetch] Event received');
     setState(() {
-      _events.insert(0, new DateTime.now());
+      _events.insert(0, new DateTime.now().toIso8601String());
     });
+    displayNotification();
     // Persist fetch events in SharedPreferences
     prefs.setString(EVENTS_KEY, jsonEncode(_events));
-
     // IMPORTANT:  You must signal completion of your fetch task or the OS can punish your app
     // for taking too long in the background.
     BackgroundFetch.finish();
@@ -237,9 +239,10 @@ class _MyHomePageState extends State<MyHomePage> {
     // Configure BackgroundFetch.
     BackgroundFetch.configure(BackgroundFetchConfig(
         minimumFetchInterval: 15,
-        stopOnTerminate: false,
         enableHeadless: true,
-        forceReload: false
+        startOnBoot: true,
+        forceReload: false,
+      stopOnTerminate: false,
     ), _onBackgroundFetch).then((int status) {
       print('[BackgroundFetch] SUCCESS: $status');
       setState(() {
@@ -275,7 +278,7 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     } else {
       BackgroundFetch.stop().then((int status) {
-        displayNotification();
+
         print('[BackgroundFetch] stop success: $status');
       });
     }
@@ -295,6 +298,12 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _events = [];
     });
+  }
+
+  Widget showDate() {
+    if(_events.length > 0) {
+      return Text("Last received: ${_events[0]}");
+    } else return Text("No events yet.");
   }
 
 
@@ -427,6 +436,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
                     )
                   ),
+                  showDate(),
                   Form(
                     key: this._formKey,
                     child: TextFormField(
@@ -463,6 +473,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               ),
               showData(),
+              FlatButton(onPressed: (){
+                _onClickEnable(_enabled);
+              }, child: Text("Click for enabling the background fetch test!"),)
             ],
           ),
         ), // This trailing comma makes auto-formatting nicer for build methods.
